@@ -73,7 +73,7 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/send_verification', (req, res) => {
     const email = req.body.email;
-    const verificationCode = Math.floor(1000 + Math.random() * 9000); // Generate 4-digit code
+    const verificationCode = Math.floor(1000 + Math.random() * 9000); // 인증코드 생성
 
     connection.query('SELECT Password FROM Customer_Info WHERE Email = ?', [email], function(err, results) {
         if (err) throw err;
