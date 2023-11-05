@@ -30,10 +30,6 @@ const PORT = 8080;
 
 app.use(bodyParser.json());
 
-// app.use(session({
-//     cookie: { secure: false }  // `secure: true` for production if using HTTPS
-// }));
-
 let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -64,7 +60,7 @@ app.post('/api/login', (req, res) => {
                     });
                 } else {
                     // 이름이 없다면
-                    const userEmailFromSession = req.session.userEmail;
+                    const userEmailFromSession = req.body.userEmail;
 
                     return res.status(300).json({
                         message: '로그인에 성공하셨습니다',
@@ -109,18 +105,19 @@ app.post('/api/send_verification', (req, res) => {
 });
 
 app.post('/api/submit_info', (req, res) => {
-    const { name, age, email,sex } = req.body;
+    const { name, age, email,sex,nickname } = req.body;
     if (!name || !age) {
         return res.status(400).json({ message: '이름과 나이를 모두 제공해야 합니다.' });
     }
 
-    connection.query('INSERT INTO User_Info (Name, User_Age, Email, Sex) VALUES (?, ?,?, ?) ', [name, age, email, sex], function (err, results) {
+    connection.query('INSERT INTO User_Info (Name, User_Age, Email, Sex, nickname) VALUES (?, ?,?, ?,?) ', [name, age, email, sex, nickname], function (err, results) {
         if (err) {
             console.error('DB Error:', err);
             return res.status(500).json({ error: 'DB에 저장하는 도중 오류가 발생했습니다.' });
         }
             return res.status(200).json({ message: '정보가 성공적으로 저장되었습니다.' });
     });
+    
 });
 
 app.post('/api/verify_code', (req, res) => {
@@ -206,14 +203,14 @@ app.post('/api/Choosen_date',(req,res)=>{
     const email = req.body.email;
     const currentDate = req.body.date;
     console.log(email, currentDate);
+
   const query = `
-  SELECT U_name, Hair_Density, Hair_Thickness, Hair_Loss_Type, Scalp_Condition, Hair_Age, Date
+  SELECT  Hair_Density, Hair_Thickness, Hair_Loss_Type, Scalp_Condition, Hair_Age, Date
   FROM Hair_history
   WHERE U_email = ? AND Date = ?
   ORDER BY Times DESC
   LIMIT 1;
   `;
-
   connection.query(query, [email, currentDate], (err, results) => {
     if (err) {
       return res.status(500).send(err);
@@ -222,14 +219,118 @@ app.post('/api/Choosen_date',(req,res)=>{
       return res.status(404).send({ message: 'No record found for given email and date.' });
     }
   
-    // Date 값을 'YYYY-MM-DD' 형식으로 변환
-    //const modifiedResult = { ...results[0], Date: results[0].Date.toISOString().split('T')[0] };
     const modifiedResult = results[0];
 
     res.status(200).send(modifiedResult);
   });
   
 });
+
+app.post('/api/Solution', (req, res) => {
+    const email = req.body.email;
+
+  const query = `
+  SELECT  Hair_Density, Hair_Thickness, Hair_Loss_Type, Scalp_Condition, Hair_Age, Date
+  FROM Hair_history
+  WHERE U_email = ? 
+  ORDER BY Times DESC
+  LIMIT 1;
+  `;
+  connection.query(query, [email], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    if (results.length === 0) {
+      return res.status(404).send({ message: 'No record found for given email and date.' });
+    }
+    
+    const modifiedResult = results[0];
+    console.log(modifiedResult);
+    res.status(200).send(modifiedResult);
+  });
+
+});
+
+app.post('/api/Get_Nickname', (req, res) => { //채팅 기능 구현할때 수정하기
+    const email = req.body.email;
+    connection.query('SELECT nickname FROM User_Info WHERE Email = ?', [email], function(err, results) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (results.length > 0) {
+        console.log(results)
+        const nickname = String(results[0].nickname);
+        res.json({ name: nickname, email: email }); // 객체로 전달
+      } else {
+        res.status(404).json({ message: 'No user found with the given email.' });
+      }
+    });
+  });
+  
+
+app.post('/api/Hair_Analyze', (req, res) => {
+    const Hair_Loss_Types = ['전면탈모', '중앙탈모', '후면탈모', '탈모 아님'];
+    const Scalp_Conditions = ['양호', '최상', '심각'];
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    // 1. Hair_Loss_Type에 Hair_Loss_Types 중 하나를 랜덤으로 설정
+    const Hair_Loss_Type = Hair_Loss_Types[Math.floor(Math.random() * Hair_Loss_Types.length)];
+
+    // 2. '탈모 아님'이라면 Hair_Density와 Scalp_Condition 설정
+    let Hair_Density, Hair_Thickness, Scalp_Condition;
+    if (Hair_Loss_Type === '탈모 아님') {
+        Hair_Density = 40;
+        Hair_Thickness = 120;
+        Scalp_Condition = '최상';
+    } else {
+        // 3. '전면탈모', '중앙탈모', '후면탈모' 중 하나라면 Scalp_Condition 설정
+        Scalp_Condition = Scalp_Conditions[Math.floor(Math.random() * Scalp_Conditions.length)];
+
+        // 4. Scalp_Condition이 '양호'라면 Hair_Density와 Hair_Thickness 설정
+        if (Scalp_Condition === '양호') {
+            Hair_Density = Math.floor(Math.random() * 11) + 20; // 20~30 사이의 랜덤 값
+            Hair_Thickness = Math.floor(Math.random() * 21) + 50; // 50~70 사이의 랜덤 값
+        }
+        
+        // 5. Scalp_Condition이 '심각'이라면 Hair_Density와 Hair_Thickness 설정
+        else if (Scalp_Condition === '심각') {
+            Hair_Density = Math.floor(Math.random() * 10) + 10; // 10~19 사이의 랜덤 값
+            Hair_Thickness = Math.floor(Math.random() * 20) + 30; // 30~49 사이의 랜덤 값
+        }
+    }
+    const tHair_Density  = Hair_Density;
+    const tHair_Thickness = Hair_Thickness;
+    const tScalp_Condition = Scalp_Condition;
+    const email = req.body.email;
+
+    connection.query('INSERT INTO Hair_history (Hair_Density,Hair_Thickness,Hair_Loss_Type,Scalp_Condition,Hair_Age, Date, U_email) VALUES (?,?,?,?,?,?,?) ', [  tHair_Density,tHair_Thickness,Hair_Loss_Type,tScalp_Condition,25, currentDate, email ], function(err, results) {
+        if(err){
+            return res.status(500).send(err);
+        }
+    });
+    console.log('성공은 했어')
+    const query = `
+    SELECT *
+    FROM Hair_history
+    WHERE U_email = ? AND Date = ?
+    ORDER BY Times DESC
+    LIMIT 1;
+    `;
+    connection.query(query, [email, currentDate], (err, results) => {
+        console.log(results);
+        if (err) {
+          return res.status(500).send(err);
+        }
+        if (results.length === 0) {
+          return res.status(404).send({ message: 'No record found for given email and date.' });
+        }
+        const modifiedResult = results[0];
+        res.status(200).send(modifiedResult);
+      });
+    
+});
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
