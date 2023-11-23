@@ -26,7 +26,7 @@ connection.connect(function(err) {
 });
 
 const app = express();
-const PORT = 8080;
+const PORT = 80;
 
 app.use(bodyParser.json());
 
@@ -36,6 +36,28 @@ let transporter = nodemailer.createTransport({
         user: config.email.user,
         pass: config.email.pass,
     },
+});
+
+app.get('/', (req, res) => {
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <body>
+    
+    <h2>API</h2>
+    
+    <ol>
+      <li>안효성 천재</li>
+      <li>장연 바보</li>
+      <li>전현아 탈모</li>
+      <li>박진우 천재</li>
+    </ol>  
+    
+    </body>
+    </html>
+    `;
+    
+    res.send(htmlContent);
 });
 
 app.post('/api/login', (req, res) => {
@@ -120,6 +142,32 @@ app.post('/api/submit_info', (req, res) => {
     
 });
 
+app.post('/api/Chat_Save', (req, res) => { //채팅 DB에 저장하기
+    const { email, message, send_or_sent } = req.body;
+
+    connection.query('INSERT INTO Chat_log (Username, Chat_message, Who) VALUES (?,?,?) ', [email,message,send_or_sent], function (err, results) {
+        if (err) {
+            console.error('DB Error:', err);
+            return res.status(500).json({ error: 'DB에 저장하는 도중 오류가 발생했습니다.' });
+        }
+            return res.status(200).json({ message: '정보가 성공적으로 저장되었습니다.' });
+    });
+    
+});
+
+app.post('/api/Load_Chat', (req, res) => { //DB에서 채팅 기록 가져오기
+    const { email } = req.body;
+
+    connection.query('SELECT Username, Chat_message, Who FROM Chat_log WHERE Username = ? ORDER BY Chat_log_times DESC LIMIT 10;', [email], function(err, results) {
+        if (err) {
+            console.error('DB Error:', err);
+            return res.status(500).json({ error: 'DB에 저장하는 도중 오류가 발생했습니다.' });
+        }
+            return res.status(200).json(results);
+    });
+    
+});
+
 app.post('/api/verify_code', (req, res) => {
     const { email, code } = req.body;
     connection.query('SELECT * FROM Customer_Info WHERE Email = ? AND VeriCode = ?', [email, code], function(err, results) {
@@ -131,6 +179,8 @@ app.post('/api/verify_code', (req, res) => {
         }
     });
 });
+
+
 
 app.post('/api/register', (req, res) => {
     const { email, password } = req.body;
@@ -146,12 +196,20 @@ app.post('/api/Today_condition',(req,res)=>{
     const currentDate = new Date().toISOString().split('T')[0];
     console.log(email, currentDate);
   const query = `
-  SELECT U_name, Hair_Density, Hair_Thickness, Hair_Loss_Type, Scalp_Condition, Hair_Age, Date
+  SELECT  Hair_Density, Hair_Thickness, Hair_Loss_Type, Scalp_Condition, Hair_Age, Date
   FROM Hair_history
   WHERE U_email = ? AND Date = ?
   ORDER BY Times DESC
   LIMIT 1;
   `;
+
+  connection.query('SELECT Name FROM User_Info WHERE Email = ?', [email], function(err, results) {
+    if (err) {
+        return res.status(500).json({ error: err.message });
+    }
+    const name = String(results[0].Name);
+    console.log(name);
+
 
   connection.query(query, [email, currentDate], (err, results) => {
     if (err) {
@@ -160,12 +218,12 @@ app.post('/api/Today_condition',(req,res)=>{
     if (results.length === 0) {
       return res.status(404).send({ message: 'No record found for given email and date.' });
     }
-  
-    // Date 값을 'YYYY-MM-DD' 형식으로 변환
-    //const modifiedResult = { ...results[0], Date: results[0].Date.toISOString().split('T')[0] };
     const modifiedResult = results[0];
 
-    res.status(200).send(modifiedResult);
+
+
+    res.status(200).json({ modifiedResult: modifiedResult, name: name });
+});
   });
   
 });
@@ -178,7 +236,7 @@ app.post('/api/Choose_date', (req, res) => {
         SELECT DISTINCT Date
         FROM Hair_history
         WHERE U_email = ?
-        ORDER BY Date DESC;
+        ORDER BY Date ;
     `;
 
     connection.query(query, [email], (err, results) => {
@@ -193,7 +251,7 @@ app.post('/api/Choose_date', (req, res) => {
         // Date 값을 'YYYY-MM-DD' 형식으로 변환 후 배열로 전송
         //const datesArray = results.map(result => result.Date.toISOString().split('T')[0]);
         const datesArray = results.map(result => new Date(result.Date).toISOString().split('T')[0]);
-
+        console.log(datesArray);
         res.status(200).send(datesArray);
     });
 });
@@ -211,6 +269,12 @@ app.post('/api/Choosen_date',(req,res)=>{
   ORDER BY Times DESC
   LIMIT 1;
   `;
+  connection.query('SELECT Name FROM User_Info WHERE Email = ?', [email], function(err, results) {
+    if (err) {
+        return res.status(500).json({ error: err.message });
+    }
+    const name = String(results[0].Name);
+    console.log(name);
   connection.query(query, [email, currentDate], (err, results) => {
     if (err) {
       return res.status(500).send(err);
@@ -221,9 +285,46 @@ app.post('/api/Choosen_date',(req,res)=>{
   
     const modifiedResult = results[0];
 
-    res.status(200).send(modifiedResult);
+
+    res.status(200).json({ modifiedResult: modifiedResult, name: name });
+    
   });
+});
+});
+
+app.post('/api/Record_choice',(req,res)=>{
+    const email = req.body.email;
+    const currentDate = req.body.date;
+    console.log(email, currentDate);
+
+  const query = `
+  SELECT  Hair_Density, Hair_Thickness, Date
+  FROM Hair_history
+  WHERE U_email = ? AND Date = ?
+  ORDER BY Times DESC
+  LIMIT 1;
+  `;
+  connection.query('SELECT Name FROM User_Info WHERE Email = ?', [email], function(err, results) {
+    if (err) {
+        return res.status(500).json({ error: err.message });
+    }
+    const name = String(results[0].Name);
+    console.log(name);
+  connection.query(query, [email, currentDate], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    if (results.length === 0) {
+      return res.status(404).send({ message: 'No record found for given email and date.' });
+    }
   
+    const modifiedResult = results[0];
+
+
+    res.status(200).json({ modifiedResult: modifiedResult, name: name });
+    
+  });
+});
 });
 
 app.post('/api/Solution', (req, res) => {
@@ -247,9 +348,28 @@ app.post('/api/Solution', (req, res) => {
     const modifiedResult = results[0];
     console.log(modifiedResult);
     res.status(200).send(modifiedResult);
+    
+
+    
   });
 
 });
+
+app.post('/api/Community', (req, res) => { //게시판, 기능 구현해야함
+    const email = req.body.email;
+    connection.query('SELECT nickname FROM User_Info WHERE Email = ?', [email], function(err, results) { 
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (results.length > 0) {
+        console.log(results)
+        const nickname = String(results[0].nickname);
+        res.json({ name: nickname, email: email }); // 객체로 전달
+      } else {
+        res.status(404).json({ message: 'No user found with the given email.' });
+      }
+    });
+  });
 
 app.post('/api/Get_Nickname', (req, res) => { //채팅 기능 구현할때 수정하기
     const email = req.body.email;
@@ -261,6 +381,22 @@ app.post('/api/Get_Nickname', (req, res) => { //채팅 기능 구현할때 수�
         console.log(results)
         const nickname = String(results[0].nickname);
         res.json({ name: nickname, email: email }); // 객체로 전달
+      } else {
+        res.status(404).json({ message: 'No user found with the given email.' });
+      }
+    });
+  });
+
+  app.post('/api/Get_U_Name', (req, res) => { //채팅 기능 구현할때 수정하기
+    const email = req.body.email;
+    connection.query('SELECT Name FROM User_Info WHERE Email = ?', [email], function(err, results) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (results.length > 0) {
+        console.log(results)
+        const name = String(results[0].Name);
+        res.json({ name: name, email: email }); // 객체로 전달
       } else {
         res.status(404).json({ message: 'No user found with the given email.' });
       }
@@ -303,12 +439,13 @@ app.post('/api/Hair_Analyze', (req, res) => {
     const tScalp_Condition = Scalp_Condition;
     const email = req.body.email;
 
+
     connection.query('INSERT INTO Hair_history (Hair_Density,Hair_Thickness,Hair_Loss_Type,Scalp_Condition,Hair_Age, Date, U_email) VALUES (?,?,?,?,?,?,?) ', [  tHair_Density,tHair_Thickness,Hair_Loss_Type,tScalp_Condition,25, currentDate, email ], function(err, results) {
         if(err){
             return res.status(500).send(err);
         }
     });
-    console.log('성공은 했어')
+    
     const query = `
     SELECT *
     FROM Hair_history
@@ -316,18 +453,25 @@ app.post('/api/Hair_Analyze', (req, res) => {
     ORDER BY Times DESC
     LIMIT 1;
     `;
-    connection.query(query, [email, currentDate], (err, results) => {
-        console.log(results);
+    connection.query('SELECT Name FROM User_Info WHERE Email = ?', [email], function(err, results) {
         if (err) {
-          return res.status(500).send(err);
+            return res.status(500).json({ error: err.message });
         }
-        if (results.length === 0) {
-          return res.status(404).send({ message: 'No record found for given email and date.' });
-        }
-        const modifiedResult = results[0];
-        res.status(200).send(modifiedResult);
-      });
+        const name = String(results[0].Name);
+        console.log(name);
     
+        connection.query(query, [email, currentDate], (err, results) => {
+            console.log(results);
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            if (results.length === 0) {
+                return res.status(404).json({ message: 'No record found for given email and date.' });
+            }
+            const modifiedResult = results[0];
+            res.status(200).json({ hairData: modifiedResult, userName: name });
+        });
+    });
 });
 
 
