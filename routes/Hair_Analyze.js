@@ -12,39 +12,105 @@ const connection = mysql.createConnection({
 });
 
 router.post('/', (req, res) => {
-    const Hair_Loss_Types = ['전면탈모', '중앙탈모', '후면탈모', '탈모 아님'];
-    const Scalp_Conditions = ['양호', '최상', '심각'];
+    const email = req.body.email;
+    console.log(email);
+    console.log("\n");
+    console.log("What");
+    const Condition = req.body.one;
+    const Hair_skin = req.body.two;
+    //const Hair_Loss_Types = ['전면탈모', '중앙탈모', '후면탈모', '탈모 아님'];
+    //const Scalp_Conditions = ['양호', '최상', '심각'];
     const currentDate = new Date().toISOString().split('T')[0];
-    
-    // 1. Hair_Loss_Type에 Hair_Loss_Types 중 하나를 랜덤으로 설정
-    const Hair_Loss_Type = Hair_Loss_Types[Math.floor(Math.random() * Hair_Loss_Types.length)];
-
-    // 2. '탈모 아님'이라면 Hair_Density와 Scalp_Condition 설정
     let Hair_Density, Hair_Thickness, Scalp_Condition;
-    if (Hair_Loss_Type === '탈모 아님') {
+    // 1. Hair_Loss_Type에 Hair_Loss_Types 중 하나를 랜덤으로 설정
+    //const Hair_Loss_Type = Hair_Loss_Types[Math.floor(Math.random() * Hair_Loss_Types.length)];
+    let t_Hair_Loss_Type;
+    if(Condition == 0){
+        t_Hair_Loss_Type = '탈모 아님';
         Hair_Density = 40;
         Hair_Thickness = 120;
-        Scalp_Condition = '최상';
-    } else {
-        // 3. '전면탈모', '중앙탈모', '후면탈모' 중 하나라면 Scalp_Condition 설정
-        Scalp_Condition = Scalp_Conditions[Math.floor(Math.random() * Scalp_Conditions.length)];
+        Scalp_Condition = '안전';
+    } else if(Condition == 1){ //81~100, 22~30
+        t_Hair_Loss_Type = '경증 탈모';
+        Scalp_Condition = '양호';
+        if(Hair_skin == 0){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 95;
+            Hair_Density = Math.floor(Math.random() * 2) + 28;
+        }else if(Hair_skin == 1){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 90;
+            Hair_Density = Math.floor(Math.random() * 2) + 26;
+        }else if(Hair_skin == 2){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 85;
+            Hair_Density = Math.floor(Math.random() * 2) + 24;
+        } else{
+            Hair_Thickness = Math.floor(Math.random() * 5) + 80;
+            Hair_Density = Math.floor(Math.random() * 2) + 22;
+        }
 
-        // 4. Scalp_Condition이 '양호'라면 Hair_Density와 Hair_Thickness 설정
-        if (Scalp_Condition === '양호') {
-            Hair_Density = Math.floor(Math.random() * 11) + 20; // 20~30 사이의 랜덤 값
-            Hair_Thickness = Math.floor(Math.random() * 21) + 50; // 50~70 사이의 랜덤 값
+    } else if(Condition == 2){ //61~80, 14~21
+        t_Hair_Loss_Type = '중경증 탈모';
+        Scalp_Condition = '위험';
+        if(Hair_skin == 0){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 75;
+            Hair_Density = Math.floor(Math.random() * 2) + 20;
+        }else if(Hair_skin == 1){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 70;
+            Hair_Density = Math.floor(Math.random() * 2) + 18;
+        }else if(Hair_skin == 2){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 65;
+            Hair_Density = Math.floor(Math.random() * 2) + 16;
+        } else{
+            Hair_Thickness = Math.floor(Math.random() * 5) + 60;
+            Hair_Density = Math.floor(Math.random() * 2) + 14;
         }
         
-        // 5. Scalp_Condition이 '심각'이라면 Hair_Density와 Hair_Thickness 설정
-        else if (Scalp_Condition === '심각') {
-            Hair_Density = Math.floor(Math.random() * 10) + 10; // 10~19 사이의 랜덤 값
-            Hair_Thickness = Math.floor(Math.random() * 20) + 30; // 30~49 사이의 랜덤 값
+    } else{ //40~59, 6~13
+        t_Hair_Loss_Type = '중증 탈모';
+        Scalp_Condition = '심각';
+        if(Hair_skin == 0){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 55;
+            Hair_Density = Math.floor(Math.random() * 2) + 12;
+        }else if(Hair_skin == 1){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 50;
+            Hair_Density = Math.floor(Math.random() * 2) + 10;
+        }else if(Hair_skin == 2){
+            Hair_Thickness = Math.floor(Math.random() * 5) + 45;
+            Hair_Density = Math.floor(Math.random() * 2) + 8;
+        } else{
+            Hair_Thickness = Math.floor(Math.random() * 5) + 40;
+            Hair_Density = Math.floor(Math.random() * 2) + 6;
         }
     }
+
+
+
+    // 2. '탈모 아님'이라면 Hair_Density와 Scalp_Condition 설정
+    // let Hair_Density, Hair_Thickness, Scalp_Condition;
+    // if (Hair_Loss_Type === '탈모 아님') {
+    //     Hair_Density = 40;
+    //     Hair_Thickness = 120;
+    //     Scalp_Condition = '최상';
+    // } else {
+    //     // 3. '전면탈모', '중앙탈모', '후면탈모' 중 하나라면 Scalp_Condition 설정
+    //     Scalp_Condition = Scalp_Conditions[Math.floor(Math.random() * Scalp_Conditions.length)];
+
+    //     // 4. Scalp_Condition이 '양호'라면 Hair_Density와 Hair_Thickness 설정
+    //     if (Scalp_Condition === '양호') {
+    //         Hair_Density = Math.floor(Math.random() * 11) + 20; // 20~30 사이의 랜덤 값
+    //         Hair_Thickness = Math.floor(Math.random() * 21) + 50; // 50~70 사이의 랜덤 값
+    //     }
+        
+    //     // 5. Scalp_Condition이 '심각'이라면 Hair_Density와 Hair_Thickness 설정
+    //     else if (Scalp_Condition === '심각') {
+    //         Hair_Density = Math.floor(Math.random() * 10) + 10; // 10~19 사이의 랜덤 값
+    //         Hair_Thickness = Math.floor(Math.random() * 20) + 30; // 30~49 사이의 랜덤 값
+    //     }
+    // }
     const tHair_Density  = Hair_Density;
     const tHair_Thickness = Hair_Thickness;
     const tScalp_Condition = Scalp_Condition;
-    const email = req.body.email;
+    const Hair_Loss_Type = t_Hair_Loss_Type;
+    
 
 
     connection.query('INSERT INTO Hair_history (Hair_Density,Hair_Thickness,Hair_Loss_Type,Scalp_Condition,Hair_Age, Date, U_email) VALUES (?,?,?,?,?,?,?) ', [  tHair_Density,tHair_Thickness,Hair_Loss_Type,tScalp_Condition,25, currentDate, email ], function(err, results) {

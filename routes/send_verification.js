@@ -45,7 +45,7 @@ router.post('/', (req, res) => {
                 const mailOptions = {
                     from: 'lgaranara@gmail.com',
                     to: email,
-                    subject: '메디헤어 인증번호',
+                    subject: 'Sook Sook 인증번호',
                     text: `인증코드는 ${verificationCode}입니다.`,
                 };
                 transporter.sendMail(mailOptions, (error, info) => {
