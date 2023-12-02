@@ -32,14 +32,9 @@ app.get('/', (req, res) => {
     <html>
     <body>
     
-    <h2>API</h2>
+    <h2>벡엔드 서버</h2>
     
-    <ol>
-      <li>안효성 천재</li>
-      <li>장연 바보</li>
-      <li>전현아 탈모</li>
-      <li>박진우 천재</li>
-    </ol>  
+
     
     </body>
     </html>
