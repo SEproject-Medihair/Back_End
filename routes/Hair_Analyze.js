@@ -20,60 +20,60 @@ router.post('/', (req, res) => {
     let Hair_Density, Hair_Thickness, Scalp_Condition;
 
     let t_Hair_Loss_Type;
-    if(Condition == 0){
+     if(Condition == 0){
         t_Hair_Loss_Type = '탈모 아님';
-        Hair_Density = 40;
+        Hair_Density = 130;
         Hair_Thickness = 120;
         Scalp_Condition = '안전';
-    } else if(Condition == 1){ //81~100, 22~30
+    } else if(Condition == 1){ //81~100, 75~94
         t_Hair_Loss_Type = '경증 탈모';
         Scalp_Condition = '양호';
         if(Hair_skin == 0){
             Hair_Thickness = Math.floor(Math.random() * 5) + 95;
-            Hair_Density = Math.floor(Math.random() * 2) + 28;
+            Hair_Density = Math.floor(Math.random() * 5) + 90;
         }else if(Hair_skin == 1){
             Hair_Thickness = Math.floor(Math.random() * 5) + 90;
-            Hair_Density = Math.floor(Math.random() * 2) + 26;
+            Hair_Density = Math.floor(Math.random() * 5) + 85;
         }else if(Hair_skin == 2){
             Hair_Thickness = Math.floor(Math.random() * 5) + 85;
-            Hair_Density = Math.floor(Math.random() * 2) + 24;
+            Hair_Density = Math.floor(Math.random() * 5) + 80;
         } else{
             Hair_Thickness = Math.floor(Math.random() * 5) + 80;
-            Hair_Density = Math.floor(Math.random() * 2) + 22;
+            Hair_Density = Math.floor(Math.random() * 5) + 75;
         }
 
-    } else if(Condition == 2){ //61~80, 14~21
+    } else if(Condition == 2){ //61~80, 55~74
         t_Hair_Loss_Type = '중경증 탈모';
         Scalp_Condition = '위험';
         if(Hair_skin == 0){
             Hair_Thickness = Math.floor(Math.random() * 5) + 75;
-            Hair_Density = Math.floor(Math.random() * 2) + 20;
+            Hair_Density = Math.floor(Math.random() * 5) + 70;
         }else if(Hair_skin == 1){
             Hair_Thickness = Math.floor(Math.random() * 5) + 70;
-            Hair_Density = Math.floor(Math.random() * 2) + 18;
+            Hair_Density = Math.floor(Math.random() * 5) + 65;
         }else if(Hair_skin == 2){
             Hair_Thickness = Math.floor(Math.random() * 5) + 65;
-            Hair_Density = Math.floor(Math.random() * 2) + 16;
+            Hair_Density = Math.floor(Math.random() * 5) + 60;
         } else{
             Hair_Thickness = Math.floor(Math.random() * 5) + 60;
-            Hair_Density = Math.floor(Math.random() * 2) + 14;
+            Hair_Density = Math.floor(Math.random() * 5) + 55;
         }
         
-    } else{ //40~59, 6~13
+    } else{ //40~59, 35~54
         t_Hair_Loss_Type = '중증 탈모';
         Scalp_Condition = '심각';
         if(Hair_skin == 0){
             Hair_Thickness = Math.floor(Math.random() * 5) + 55;
-            Hair_Density = Math.floor(Math.random() * 2) + 12;
+            Hair_Density = Math.floor(Math.random() * 5) + 50;
         }else if(Hair_skin == 1){
             Hair_Thickness = Math.floor(Math.random() * 5) + 50;
-            Hair_Density = Math.floor(Math.random() * 2) + 10;
+            Hair_Density = Math.floor(Math.random() * 5) + 45;
         }else if(Hair_skin == 2){
             Hair_Thickness = Math.floor(Math.random() * 5) + 45;
-            Hair_Density = Math.floor(Math.random() * 2) + 8;
+            Hair_Density = Math.floor(Math.random() * 5) + 40
         } else{
             Hair_Thickness = Math.floor(Math.random() * 5) + 40;
-            Hair_Density = Math.floor(Math.random() * 2) + 6;
+            Hair_Density = Math.floor(Math.random() * 5) + 35
         }
     }
 
